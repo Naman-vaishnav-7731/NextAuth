@@ -1,24 +1,34 @@
-import React, { useState } from "react";
+import React from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { useFormik } from "formik";
 import * as Yup from 'yup';
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/router";
+
 
 const SignIn = () => {
+  const router = useRouter();
   const formik = useFormik({
     initialValues: {
-      email: "",
+      username: "",
       password: "",
     },
     validationSchema: Yup.object({
-      email: Yup.string()
-        .email("Invalid email address")
-        .required("Email is required"),
-      password: Yup.string()
-        .min(6, "Password must be at least 6 characters")
-        .required("Password is required"),
+      username: Yup.string().required("Username is required"),
+      password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
     }),
-    onSubmit: (values) => {
-      console.log(values);
+    onSubmit: async (values) => {
+          const response = await signIn('credentials', {
+            ...values,
+            redirect: false
+        });
+
+        if(response.ok){
+          console.log("successfully login");
+          router.push('/dashboard');
+        }else{
+          console.log("something wrong");
+        }
     },
   });
 
@@ -31,18 +41,18 @@ const SignIn = () => {
           </div>
           <Form onSubmit={formik.handleSubmit}>
             <Form.Group controlId="formBasicEmail">
-              <Form.Label>Email address</Form.Label>
+              <Form.Label>Username</Form.Label>
               <Form.Control
-                type="email"
+                type="text"
                 placeholder="Enter email"
-                name="email"
-                value={formik.values.email}
+                name="username" 
+                value={formik.values.username}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                isInvalid={formik.touched.email && !!formik.errors.email}
+                isInvalid={formik.touched.username && !!formik.errors.username}
               />
               <Form.Control.Feedback type="invalid">
-                {formik.errors.email}
+                {formik.errors.username}
               </Form.Control.Feedback>
             </Form.Group>
 
